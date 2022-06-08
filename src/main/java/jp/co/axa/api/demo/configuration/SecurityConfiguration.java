@@ -1,5 +1,6 @@
 package jp.co.axa.api.demo.configuration;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
@@ -18,44 +19,60 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class SecurityConfiguration {
 
+    @Value("${api.demo.user.username}")
+    String userName;
+
+    @Value("${api.demo.admin.username}")
+    String adminName;
+
+    @Value("${api.demo.user.password}")
+    String userPassword;
+
+    @Value("${api.demo.admin.password}")
+    String adminPassword;
+
+    public static final String ADMIN_ROLE = "ADMIN";
+    public static final String USER_ROLE = "USER";
     private final PasswordEncoder encoder =
             PasswordEncoderFactories.createDelegatingPasswordEncoder();
 
+    public static final String EMPLOYEE_API_PATH = "/api/v1/employees";
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.authorizeRequests()
-                .antMatchers(HttpMethod.GET,"/api/v1/employees/*").access("hasRole('USER') or hasRole('ADMIN')")
-                .antMatchers(HttpMethod.GET,"/api/v1/employees").access("hasRole('USER') or hasRole('ADMIN')")
-                .antMatchers(HttpMethod.POST,"/api/v1/employees").access("hasRole('ADMIN')")
-                .antMatchers(HttpMethod.PUT,"/api/v1/employees").access("hasRole('ADMIN')")
-                .antMatchers(HttpMethod.DELETE,"/api/v1/employees/*").access("hasRole('ADMIN')")
-                .antMatchers("/login*","/swagger-ui/**").permitAll().anyRequest().authenticated()
+        return http.authorizeRequests()
+                //match api paths and provide access to appropriate user.
+                .antMatchers(HttpMethod.GET, EMPLOYEE_API_PATH + "/*").access("hasRole('USER') or hasRole('ADMIN')")
+                .antMatchers(HttpMethod.GET, EMPLOYEE_API_PATH).access("hasRole('USER') or hasRole('ADMIN')")
+                .antMatchers(HttpMethod.POST, EMPLOYEE_API_PATH).access("hasRole('ADMIN')")
+                .antMatchers(HttpMethod.PUT, EMPLOYEE_API_PATH).access("hasRole('ADMIN')")
+                .antMatchers(HttpMethod.DELETE, EMPLOYEE_API_PATH + "/*").access("hasRole('ADMIN')")
+                .antMatchers("/login*", "/swagger-ui/**").permitAll()
+                .anyRequest().authenticated()
                 .and()
-                .httpBasic(Customizer.withDefaults());
-
-        http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-        http.headers().frameOptions().disable();
-        http.csrf().disable();
-
-        return http.build();
+                .httpBasic(Customizer.withDefaults())
+                //make the session stateless
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and().headers().frameOptions().disable()
+                .and().csrf().disable()
+                .build();
     }
 
     @Bean
     public InMemoryUserDetailsManager userDetailsService() {
-        UserDetails tom = User.builder()
-                .username("user")
-                .password(encoder.encode("user"))
-                .roles("USER")
+        UserDetails user = User.builder()
+                .username(userName)
+                .password(encoder.encode(userPassword))
+                .roles(USER_ROLE)
                 .build();
 
-        UserDetails jerry = User.builder()
-                .username("admin")
-                .password(encoder.encode("admin"))
-                .roles("ADMIN")
+        UserDetails admin = User.builder()
+                .username(adminName)
+                .password(encoder.encode(adminPassword))
+                .roles(ADMIN_ROLE)
                 .build();
-        return new InMemoryUserDetailsManager(tom, jerry);
+        return new InMemoryUserDetailsManager(user, admin);
     }
-
 
 
 }

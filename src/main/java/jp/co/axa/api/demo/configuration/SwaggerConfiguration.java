@@ -14,19 +14,25 @@ import springfox.documentation.spring.web.plugins.Docket;
 @Configuration
 @Import(BeanValidatorPluginsConfiguration.class)
 public class SwaggerConfiguration {
+
+    public static final String BASE_PACKAGE = "jp.co.axa.api.demo.controllers";
+    public static final String employee_management = "Employee Management";
+    public static final String description = "System to manage employee in organization";
+
     @Bean
     public Docket api() {
         return new Docket(DocumentationType.OAS_30)
                 .select()
-                .apis(RequestHandlerSelectors.basePackage("jp.co.axa.api.demo.controllers"))
+                .apis(RequestHandlerSelectors.basePackage(BASE_PACKAGE))
                 .paths(PathSelectors.any())
                 .build().apiInfo(info());
     }
 
     private ApiInfo info() {
+
         return new ApiInfoBuilder()
-                .title("Employee Management")
-                .description("System to manage employee in organization")
+                .title(employee_management)
+                .description(description)
                 .build();
     }
 }

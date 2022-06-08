@@ -11,7 +11,6 @@ public class BaseController {
     }
 
     protected <T extends IRootDTO> ResponseEntity<T> handle(T dto, HttpStatus status) {
-        //log
         return new ResponseEntity<>(dto, status);
     }
 }
