@@ -14,10 +14,10 @@ import springfox.documentation.spring.web.plugins.Docket;
 @Configuration
 @Import(BeanValidatorPluginsConfiguration.class)
 public class SwaggerConfiguration {
-
     @Bean
     public Docket api() {
-        return new Docket(DocumentationType.OAS_30).select()
+        return new Docket(DocumentationType.OAS_30)
+                .select()
                 .apis(RequestHandlerSelectors.basePackage("jp.co.axa.api.demo.controllers"))
                 .paths(PathSelectors.any())
                 .build().apiInfo(info());

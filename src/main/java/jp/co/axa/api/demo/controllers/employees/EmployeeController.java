@@ -15,10 +15,10 @@ import jp.co.axa.api.demo.services.employee.EmployeeService;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -32,13 +32,14 @@ import javax.validation.constraints.Positive;
 @RequestMapping("/api/v1")
 @Api( tags = {"Employee Service"})
 @Tag(name = "Employee Service", description = "These services manage employees")
-@PreAuthorize("isAuthenticated()")
 public class EmployeeController extends BaseController {
 
     @NonNull
     private final EmployeeService employeeService;
 
-    @PreAuthorize("hasRole('ROLE_VIEWER') or hasRole('ROLE_EDITOR')")
+    @Value("api.demo.profile")
+    static String api;
+
     @ApiOperation(value = "Get All Employees in the System.", produces = MediaType.APPLICATION_JSON_VALUE
             , notes = "List of Employees in System", httpMethod = "GET", response = BulkEmployeeGetDTO.class)
     @ApiResponses(value = {
@@ -50,7 +51,6 @@ public class EmployeeController extends BaseController {
         return handleSuccess(employeeService.retrieveEmployees());
     }
 
-    @PreAuthorize("hasRole('ROLE_VIEWER') or hasRole('ROLE_EDITOR')")
     @ApiOperation(value = "Get Employee Information on the basis of ID"
             , produces = MediaType.APPLICATION_JSON_VALUE
             , notes = "Employee Information of given ID"
@@ -67,7 +67,6 @@ public class EmployeeController extends BaseController {
         return handleSuccess(employeeService.getEmployee(employeeId));
     }
 
-    @PreAuthorize("hasRole('ROLE_EDITOR')")
     @ApiOperation(value = "Create a new employee with given information"
             , consumes = MediaType.APPLICATION_JSON_VALUE
             , produces = MediaType.APPLICATION_JSON_VALUE
@@ -84,7 +83,6 @@ public class EmployeeController extends BaseController {
         return handle(employeeService.saveEmployee(employee), HttpStatus.CREATED);
     }
 
-    @PreAuthorize("hasRole('ROLE_EDITOR')")
     @ApiOperation(value = "Delete an existing Employee Record."
             , consumes = MediaType.APPLICATION_JSON_VALUE
             , produces = MediaType.APPLICATION_JSON_VALUE
@@ -101,7 +99,6 @@ public class EmployeeController extends BaseController {
         return handleSuccess(employeeService.deleteEmployee(employeeId));
     }
 
-    @PreAuthorize("hasRole('ROLE_EDITOR')")
     @ApiOperation(value = "Update an existing Employee Record."
             , consumes = MediaType.APPLICATION_JSON_VALUE
             , produces = MediaType.APPLICATION_JSON_VALUE

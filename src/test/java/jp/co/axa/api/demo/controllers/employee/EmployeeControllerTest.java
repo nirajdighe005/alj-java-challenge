@@ -2,8 +2,8 @@ package jp.co.axa.api.demo.controllers.employee;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.Resources;
-import jp.co.axa.api.demo.controllers.employees.EmployeeController;
 import jp.co.axa.api.demo.controllers.controlleradvice.ApplicationExceptionHandler;
+import jp.co.axa.api.demo.controllers.employees.EmployeeController;
 import jp.co.axa.api.demo.dto.employee.BulkEmployeeGetDTO;
 import jp.co.axa.api.demo.dto.employee.EmployeeDTO;
 import jp.co.axa.api.demo.dto.employee.EmployeeInfoDTO;
@@ -16,7 +16,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -34,10 +33,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
 @ExtendWith({SpringExtension.class})
 public class EmployeeControllerTest {
 

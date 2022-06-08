@@ -2,13 +2,14 @@ package jp.co.axa.api.demo.services.employee;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.Resources;
+import jp.co.axa.api.demo.dto.employee.BulkEmployeeGetDTO;
+import jp.co.axa.api.demo.dto.employee.EmployeeDTO;
 import jp.co.axa.api.demo.dto.employee.EmployeeInfoDTO;
 import jp.co.axa.api.demo.dto.response.VoidResponseDTO;
 import jp.co.axa.api.demo.entities.employee.Employee;
 import jp.co.axa.api.demo.exceptions.EmployeeAPIException;
 import jp.co.axa.api.demo.repositories.employee.EmployeeRepository;
-import jp.co.axa.api.demo.dto.employee.BulkEmployeeGetDTO;
-import jp.co.axa.api.demo.dto.employee.EmployeeDTO;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -46,18 +47,19 @@ public class EmployeeServiceTest {
     @BeforeEach
     void init() throws IOException {
         employeeService = new EmployeeServiceImpl(employeeRepository, m);
+        //some initial default data to run tests on
         initializeEmployeeData();
-        initializeMock();
+        //this method is to initialize mock data that would be common in most tests.
+        initializeMockData();
     }
 
-    private void initializeMock() {
+    private void initializeMockData() {
         for (Map.Entry<Long, Employee> employee : employeeData.entrySet()) {
             lenient().doReturn(Optional.ofNullable(employee.getValue())).when(employeeRepository).findById(employee.getKey());
             lenient().doNothing().when(employeeRepository).deleteById(employee.getKey());
             lenient().doReturn(true).when(employeeRepository).existsById(employee.getKey());
         }
         lenient().doReturn(employeeData.values()).when(employeeRepository).findAll();
-
     }
 
     private void initializeEmployeeData() throws IOException {
@@ -66,14 +68,9 @@ public class EmployeeServiceTest {
         employeeData = Arrays.stream(employees).collect(Collectors.toMap(Employee::getId, Function.identity()));
     }
 
-    /**
-     * This is a positive test case of Employee service for getting employee.
-     * The given ID is present in data.
-     *
-     * @throws EmployeeAPIException may throw if entity is unavailable
-     */
+    @SneakyThrows
     @Test
-    public void getEmployeeTest_validId() throws EmployeeAPIException {
+    public void getEmployeeTest_validId() {
         long empId = 1L;
         EmployeeDTO employee = employeeService.getEmployee(empId);
         assertThat(employee).isNotNull();
@@ -81,38 +78,6 @@ public class EmployeeServiceTest {
         assert (employee.getName().equals(employeeData.get(empId).getName()));
     }
 
-    /**
-     * This is a negative test case of Employee service for getting employee.
-     * The given ID is not present in data.
-     */
-    @Test
-    public void getEmployeeTest_InvalidID() {
-        //following id is not present in employeeData
-        long empId = 9L;
-        Exception exception = assertThrows(EmployeeAPIException.class, () -> employeeService.getEmployee(empId));
-        String actualMessage = exception.getMessage();
-        String messageFormat = CommonResponseMessage.ENTITY_UNAVAILABLE.getMessage();
-        assertTrue(actualMessage.contains(String.format(messageFormat, EMPLOYEE)));
-    }
-
-    /**
-     *  This is a positive test_case for getting all employees. It checks whether all the employees are returned from
-     * the service.
-    **/
-    @Test
-    public void getAllEmployeesTest() {
-        BulkEmployeeGetDTO allEmployees = employeeService.retrieveEmployees();
-        assertThat(allEmployees).isNotNull();
-        assertEquals(allEmployees.getEmployees().size(), employeeData.size());
-        Set<Long> availableIds = employeeData.keySet();
-        List<Long> idsFromService = allEmployees.getEmployees().stream().map(EmployeeDTO::getId).collect(Collectors.toList());
-        assertTrue(availableIds.containsAll(idsFromService));
-    }
-
-    /**
-     * Test Case to check whether employee is getting created with below ID or not.
-     *
-     */
     @Test
     public void createEmployeesTest() {
         EmployeeInfoDTO saveEmployee = new EmployeeInfoDTO("Rohan", 5000, "Sales");
@@ -126,14 +91,35 @@ public class EmployeeServiceTest {
         assertEquals(expectedResponse, responseDTO.getResponse());
     }
 
-
     /**
-     * Test Case to check whether employee is getting updated with valid info.
-     *
-     * @throws EmployeeAPIException may throw exception if employee does not exist.
+     * This is a negative test case of Employee service for getting employee.
+     * The given ID is not present in data.
      */
+    @SneakyThrows
     @Test
-    public void updateEmployeesTest_ValidInfo() throws EmployeeAPIException {
+    public void getEmployeeTest_InvalidID() {
+        //following id is not present in employeeData
+        long empId = 9L;
+        Exception exception = assertThrows(EmployeeAPIException.class, () -> employeeService.getEmployee(empId));
+        String actualMessage = exception.getMessage();
+        String messageFormat = CommonResponseMessage.ENTITY_UNAVAILABLE.getMessage();
+        assertTrue(actualMessage.contains(String.format(messageFormat, EMPLOYEE)));
+    }
+
+    @SneakyThrows
+    @Test
+    public void getAllEmployeesTest() {
+        BulkEmployeeGetDTO allEmployees = employeeService.retrieveEmployees();
+        assertThat(allEmployees).isNotNull();
+        assertEquals(allEmployees.getEmployees().size(), employeeData.size());
+        Set<Long> availableIds = employeeData.keySet();
+        List<Long> idsFromService = allEmployees.getEmployees().stream().map(EmployeeDTO::getId).collect(Collectors.toList());
+        assertTrue(availableIds.containsAll(idsFromService));
+    }
+
+    @SneakyThrows
+    @Test
+    public void updateEmployeesTest_ValidInfo() {
         long id = 1L;
         EmployeeDTO savedEmployeeDto = new EmployeeDTO("Hashimoto", 5000, "HR", id);
         Employee savedEmployee = m.map(savedEmployeeDto, Employee.class);
@@ -159,11 +145,9 @@ public class EmployeeServiceTest {
         assertTrue(actualMessage.contains(String.format(messageFormat, EMPLOYEE)));
     }
 
-    /**
-     * Test case to check delete employee use-case with valid ID gives appropriate response.
-     */
+    @SneakyThrows
     @Test
-    public void deleteEmployeeTest_validID() throws EmployeeAPIException {
+    public void deleteEmployeeTest_validID() {
         Long empId = 1L;
         VoidResponseDTO result = employeeService.deleteEmployee(empId);
         String expectedResponse = String.format(CommonResponseMessage.DELETE_SUCCESSFUL.getMessage(), EMPLOYEE, empId);

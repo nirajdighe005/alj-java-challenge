@@ -1,6 +1,7 @@
 package jp.co.axa.api.demo.configuration;
 
 import org.springframework.context.annotation.Bean;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -22,41 +23,35 @@ public class SecurityConfiguration {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        /*http
-                .authorizeHttpRequests((manager) -> manager
-                        .antMatchers(HttpMethod.POST, "/api/v1/employees").hasRole("ADMIN")
-                        .antMatchers(HttpMethod.PUT, "/api/v1/employees").hasRole("ADMIN")
-                        .antMatchers(HttpMethod.DELETE, "/api/v1/employees/**").hasRole("ADMIN")
-                        .antMatchers(HttpMethod.GET, "/api/v1/employees").hasRole("USER")
-                        .antMatchers(HttpMethod.GET, "/api/v1/employees/**").hasRole("USER")
-                        .antMatchers("/swagger-ui/**").permitAll().anyRequest().authenticated()
-                )*/
-
-        http
-                .authorizeRequests()
-                .antMatchers("/swagger-ui/**").permitAll().anyRequest().authenticated()
+        http.authorizeRequests()
+                .antMatchers(HttpMethod.GET,"/api/v1/employees/*").access("hasRole('USER') or hasRole('ADMIN')")
+                .antMatchers(HttpMethod.GET,"/api/v1/employees").access("hasRole('USER') or hasRole('ADMIN')")
+                .antMatchers(HttpMethod.POST,"/api/v1/employees").access("hasRole('ADMIN')")
+                .antMatchers(HttpMethod.PUT,"/api/v1/employees").access("hasRole('ADMIN')")
+                .antMatchers(HttpMethod.DELETE,"/api/v1/employees/*").access("hasRole('ADMIN')")
+                .antMatchers("/login*","/swagger-ui/**").permitAll().anyRequest().authenticated()
                 .and()
                 .httpBasic(Customizer.withDefaults());
 
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
         http.headers().frameOptions().disable();
         http.csrf().disable();
-        http.formLogin();
+
         return http.build();
     }
 
     @Bean
     public InMemoryUserDetailsManager userDetailsService() {
         UserDetails tom = User.builder()
-                .username("tom")
-                .password(encoder.encode("password"))
-                .roles("VIEWER")
+                .username("user")
+                .password(encoder.encode("user"))
+                .roles("USER")
                 .build();
 
         UserDetails jerry = User.builder()
-                .username("jerry")
-                .password(encoder.encode("password"))
-                .roles("EDITOR")
+                .username("admin")
+                .password(encoder.encode("admin"))
+                .roles("ADMIN")
                 .build();
         return new InMemoryUserDetailsManager(tom, jerry);
     }

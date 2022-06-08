@@ -2,6 +2,7 @@ package jp.co.axa.api.demo.controllers.controlleradvice;
 
 import jp.co.axa.api.demo.dto.response.VoidResponseDTO;
 import jp.co.axa.api.demo.exceptions.EmployeeAPIException;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -42,8 +43,8 @@ public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler 
     }
 
     @Override
-    protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, HttpHeaders headers,
-                                                                  HttpStatus status, WebRequest request) {
+    protected @NonNull ResponseEntity<Object> handleMethodArgumentNotValid(@NonNull MethodArgumentNotValidException ex, @NonNull HttpHeaders headers,
+                                                                           @NonNull HttpStatus status, @NonNull WebRequest request) {
         logException(ex, request);
         List<FieldError> fieldErrors = ex.getBindingResult().getFieldErrors();
         String invalidFields = fieldErrors.stream().map(FieldError::getField).collect(Collectors.joining(","));
@@ -52,7 +53,8 @@ public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler 
     }
 
     @Override
-    protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex, HttpHeaders headers, HttpStatus status, WebRequest webRequest) {
+    protected @NonNull ResponseEntity<Object> handleHttpMessageNotReadable(@NonNull HttpMessageNotReadableException ex, @NonNull HttpHeaders headers,
+                                                                           @NonNull HttpStatus status, @NonNull WebRequest webRequest) {
         logException(ex, webRequest);
         VoidResponseDTO failureResponse = new VoidResponseDTO(MALFORMED_REQUEST_PREFIX + ex.getMostSpecificCause().getLocalizedMessage());
         return new ResponseEntity<>(failureResponse, status);

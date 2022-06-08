@@ -1,15 +1,17 @@
 package jp.co.axa.api.demo.services.employee;
 
-import jp.co.axa.api.demo.dto.employee.EmployeeInfoDTO;
-import jp.co.axa.api.demo.dto.response.VoidResponseDTO;
-import jp.co.axa.api.demo.exceptions.EmployeeAPIException;
-import jp.co.axa.api.demo.repositories.employee.EmployeeRepository;
 import jp.co.axa.api.demo.dto.employee.BulkEmployeeGetDTO;
 import jp.co.axa.api.demo.dto.employee.EmployeeDTO;
+import jp.co.axa.api.demo.dto.employee.EmployeeInfoDTO;
+import jp.co.axa.api.demo.dto.response.VoidResponseDTO;
 import jp.co.axa.api.demo.entities.employee.Employee;
+import jp.co.axa.api.demo.exceptions.EmployeeAPIException;
+import jp.co.axa.api.demo.repositories.employee.EmployeeRepository;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -34,7 +36,7 @@ public class EmployeeServiceImpl implements EmployeeService {
      */
     public BulkEmployeeGetDTO retrieveEmployees() {
         Iterable<Employee> employees = employeeRepository.findAll();
-        List<EmployeeDTO> employeeDTOs = StreamSupport.stream(employees.spliterator(), false)
+        List<EmployeeDTO> employeeDTOs =  StreamSupport.stream(employees.spliterator(), false)
                 .map(employee -> mapper.map(employee, EmployeeDTO.class))
                 .collect(Collectors.toList());
         return new BulkEmployeeGetDTO(employeeDTOs);
@@ -47,6 +49,7 @@ public class EmployeeServiceImpl implements EmployeeService {
      * @return DTO of employee whose id was given as input.
      * @throws EmployeeAPIException thrown when no employee of this id exist
      */
+    @Cacheable(value = "employeeCache", key = "#employeeId")
     public EmployeeDTO getEmployee(Long employeeId) throws EmployeeAPIException {
         EmployeeDTO employeeDTO = getEmployeeDTOById(employeeId);
         if (employeeDTO == null) {
@@ -64,8 +67,8 @@ public class EmployeeServiceImpl implements EmployeeService {
      */
     public VoidResponseDTO saveEmployee(EmployeeInfoDTO employeeInfo) {
         Employee employeeEntity = mapper.map(employeeInfo, Employee.class);
-        Employee employee = employeeRepository.save(employeeEntity);
-        String response = String.format(CommonResponseMessage.CREATE_SUCCESSFUL.getMessage(), EMPLOYEE, employee.getId());
+        EmployeeDTO employeeDTO = saveEmployee(employeeEntity);
+        String response = String.format(CommonResponseMessage.CREATE_SUCCESSFUL.getMessage(), EMPLOYEE, employeeDTO.getId());
         return new VoidResponseDTO(response);
     }
 
@@ -76,14 +79,14 @@ public class EmployeeServiceImpl implements EmployeeService {
      * @return VoidResponseDTO The api should generally should have a response. So instead of
      * using void using VoidResponseDTO which has a String message for end user.
      */
+    @CacheEvict(value = "employeeCache", key = "#employee.id")
     public VoidResponseDTO updateEmployee(EmployeeDTO employee) throws EmployeeAPIException {
-        Long id = employee.getId();
         Employee employeeEntity = mapper.map(employee, Employee.class);
-        if (!employeeRepository.existsById(id)) {
+        if (!employeeRepository.existsById(employee.getId())) {
             throw new EmployeeAPIException(String.format(CommonResponseMessage.ENTITY_UNAVAILABLE.getMessage(), EMPLOYEE));
         }
-        employeeRepository.save(employeeEntity);
-        return new VoidResponseDTO(String.format(CommonResponseMessage.UPDATE_SUCCESSFUL.getMessage(), EMPLOYEE, id));
+        EmployeeDTO employeeDTO = saveEmployee(employeeEntity);
+        return new VoidResponseDTO(String.format(CommonResponseMessage.UPDATE_SUCCESSFUL.getMessage(), EMPLOYEE, employeeDTO.getId()));
     }
 
     /**
@@ -93,6 +96,7 @@ public class EmployeeServiceImpl implements EmployeeService {
      * @return VoidResponseDTO The api should generally should have a response. So instead of
      * using void using VoidResponseDTO which has a String message for end user.
      */
+    @CacheEvict(value = "employeeCache", key = "#employeeId")
     public VoidResponseDTO deleteEmployee(Long employeeId) throws EmployeeAPIException {
         if (!employeeRepository.existsById(employeeId)) {
             throw new EmployeeAPIException(String.format(CommonResponseMessage.ENTITY_UNAVAILABLE.getMessage(), EMPLOYEE));
@@ -105,4 +109,10 @@ public class EmployeeServiceImpl implements EmployeeService {
         Optional<Employee> employeeOptional = employeeRepository.findById(employeeId);
         return employeeOptional.map(employee -> mapper.map(employee, EmployeeDTO.class)).orElse(null);
     }
+
+    public EmployeeDTO saveEmployee(Employee employeeEntity) {
+        Employee employee = employeeRepository.save(employeeEntity);
+        return mapper.map(employee, EmployeeDTO.class);
+    }
+
 }

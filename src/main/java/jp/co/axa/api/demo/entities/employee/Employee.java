@@ -5,15 +5,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
+import java.util.Objects;
 
 @Entity
-@Table(name="EMPLOYEE")
+@Table(name = "EMPLOYEE")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -21,15 +17,28 @@ import javax.persistence.Table;
 public class Employee {
 
     @Id
-    @GeneratedValue(strategy= GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name="EMPLOYEE_NAME")
+    @Column(name = "EMPLOYEE_NAME")
     private String name;
 
-    @Column(name="EMPLOYEE_SALARY")
+    @Column(name = "EMPLOYEE_SALARY")
     private Integer salary;
 
-    @Column(name="DEPARTMENT")
+    @Column(name = "DEPARTMENT")
     private String department;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Employee employee = (Employee) o;
+        return Objects.equals(id, employee.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
 }
