@@ -1,3 +1,4 @@
+## Axa Section
 ### How to use this spring-boot project
 
 - Install packages with `mvn package`
@@ -51,11 +52,48 @@ Please let us know more about your Java experience in a few sentences. For examp
 - I'm a beginner and just recently learned Spring Boot
 - I know Spring Boot very well and have been using it for many years
 
-###################################################################################################################################
-DEVELOPER SECTION
-###################################################################################################################################
-Hello everyone, I am Niraj. I have 5 years of experience in Java, I have used spring for most of my career and used spring-boot 
-from the last two years. 
+
+## *Developer's Section*
+
+### **Introduction**
+
+- Hello, I am Niraj Dighe. I have 5 years of experience in Java, I have used spring for most of my career 
+  and used spring-boot from the last two years. 
+- I have mostly worked on architecture and designing frameworks for adapting various types of 
+  datastore's like elastic search, Postgres SQL, Orient DB.
+
+### **Changes Done By Me.**
+1. Modified the already existing MVC architecture. Created DTOs(Data Transfer Object) to communicate between 
+   Controller and Service. Entity are generally part of persistence layer and should not be exposed. Additionally,
+   using Entities in REST APIs may result in populating UI specific data in them.
+2. Hence, Entities are only used by service to communicate with Repository, every other communication is
+   done by DTO. 
+3. Spring security is used to provide minimum viable permissions. There are two Roles in the system, user and admin.
+   User only has access to Get APIs. While Admin has access to all the APIs.
+> **username**: _user_   **password**: _user_
+> 
+> **username**: _admin_  **password**: _admin_
+4. Caffeine Configuration has been used to implement in-memory caching.
+5. Used Swagger with spring-fox-3 for documentation of APIs. The default URL for Swagger has been changed to:
+   1. **http://localhost:8080/swagger-ui/index.html**
+6. Isolated exception handling code in controller advice, this helps in service been free of redundant exception code.
+7. Logging done through annotation using Slf4j specification and default logback implementation that is used by spring.
+8. Implemented Unit tests and Integration tests for services using Mockito and JUnit5. 
+9. Used Jacoco Plugin for code coverage. To trigger this plugin, run **mvn install**. The cover ratio has been provided
+   in pom.xml and if the coverage is less than the cover ratio, the build fails and points out the packages that need 
+   test cases.
+
+### **Changes I would have done if I had more time.**
+1. I Would have updated http 1.1 to http 2.
+2. Would have integrated GraphQl instead of REST. GraphQL is faster, less verbose, and has integration with open api docs.
+3. Protocol Buffers aka Protobuffs are serialization and deserialization tools. Generally, by default spring uses Jackson
+   which has great functionality but is very slow. Protobuffs are fast and mainly used for communication between various 
+   services.
+4. Spring Actuator -> Would have integrated spring actuator. It has great in-built functionality for metrics.
+5. I would have integrated sonarQube for code smells. It acts as all in one code analysis tool. 
+6. I would have used hooks or pipelines to perform evaluation of code submitted, so it passes all the checks before it is merged.
+7. I would have also integrated WebFlux reactive client.
+
 
 
 
